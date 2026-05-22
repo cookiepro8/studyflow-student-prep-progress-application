@@ -1,4 +1,5 @@
 let data = [];
+  let planTitle = '';
   let currentView = 'dashboard';
   let prevView = 'dashboard';
   let selectedType = 'yt';
@@ -23,8 +24,57 @@ let data = [];
     custom: 'Tasks / topics (comma-separated)',
   };
 
-  function save() { try { localStorage.setItem('sf_data_v2', JSON.stringify(data)); } catch(e) {} }
-  function load() { try { const d = localStorage.getItem('sf_data_v2'); if (d) data = JSON.parse(d); } catch(e) {} }
+  function save() {
+    try {
+      localStorage.setItem('sf_data_v2', JSON.stringify(data));
+      localStorage.setItem('sf_plan_title_v1', planTitle);
+    } catch(e) {}
+  }
+
+  function load() {
+    try {
+      const d = localStorage.getItem('sf_data_v2');
+      const savedTitle = localStorage.getItem('sf_plan_title_v1');
+      if (d) data = JSON.parse(d);
+      if (savedTitle) planTitle = savedTitle;
+      if (!planTitle && data.length > 0) planTitle = 'My Study Plan';
+    } catch(e) {}
+  }
+
+  function applyPlanState() {
+    document.body.classList.toggle('has-plan', Boolean(planTitle));
+    document.getElementById('sidebarPlanTitle').textContent = planTitle || 'Progress Tracker';
+    if (planTitle && currentView === 'dashboard') {
+      document.getElementById('topbarTitle').textContent = planTitle;
+    }
+  }
+
+  function showPlanModal() {
+    document.getElementById('planModalOverlay').classList.add('open');
+    const input = document.getElementById('inputPlanTitle');
+    input.value = planTitle;
+    setTimeout(() => input.focus(), 0);
+  }
+
+  function closePlanModal() {
+    document.getElementById('planModalOverlay').classList.remove('open');
+    document.getElementById('inputPlanTitle').value = '';
+  }
+
+  function handlePlanOverlayClick(e) {
+    if (e.target === document.getElementById('planModalOverlay')) closePlanModal();
+  }
+
+  function createPlan() {
+    const title = document.getElementById('inputPlanTitle').value.trim();
+    if (!title) { showToast('Please enter a title for your plan.'); return; }
+    planTitle = title;
+    save();
+    closePlanModal();
+    applyPlanState();
+    navigate('dashboard', document.querySelector('[data-view=dashboard]'));
+    showToast('Study plan created ✓');
+  }
 
   function selectType(type, el) {
     selectedType = type;
@@ -162,7 +212,7 @@ let data = [];
     document.getElementById('view-' + view).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (el && el.classList) el.classList.add('active');
-    const titles = { dashboard: 'Dashboard', all: 'All Resources', detail: 'Resource Detail' };
+    const titles = { dashboard: planTitle || 'Dashboard', all: 'All Resources', detail: 'Resource Detail' };
     document.getElementById('topbarTitle').textContent = titles[view] || view;
   }
 
@@ -333,6 +383,17 @@ let data = [];
   function esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function initEventListeners() {
+    document.querySelectorAll('.js-open-plan-modal').forEach(button => {
+      button.addEventListener('click', showPlanModal);
+    });
+    document.querySelectorAll('.js-close-plan-modal').forEach(button => {
+      button.addEventListener('click', closePlanModal);
+    });
+    document.getElementById('planModalOverlay').addEventListener('click', handlePlanOverlayClick);
+    document.getElementById('btnCreatePlan').addEventListener('click', createPlan);
+    document.getElementById('inputPlanTitle').addEventListener('keydown', e => {
+      if (e.key === 'Enter') createPlan();
+    });
     document.querySelectorAll('.nav-item[data-view]').forEach(item => {
       item.addEventListener('click', () => navigate(item.dataset.view, item));
     });
@@ -357,9 +418,15 @@ let data = [];
     document.getElementById('detailDelete').addEventListener('click', event => {
       deleteResource(Number(event.currentTarget.dataset.resourceId));
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeModal();
+        closePlanModal();
+      }
+    });
   }
 
   initEventListeners();
   load();
+  applyPlanState();
   renderAll();
