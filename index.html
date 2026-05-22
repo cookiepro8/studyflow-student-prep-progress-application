@@ -11,12 +11,70 @@
 </head>
 <body>
 
+<section class="landing" id="landing">
+  <header class="landing-nav">
+    <div class="landing-brand">Study<span>Flow</span></div>
+    <button class="btn btn-ghost js-open-plan-modal">Create new</button>
+  </header>
+
+  <div class="landing-inner">
+    <div class="landing-copy">
+      <div class="landing-kicker">Personal study tracker</div>
+      <h1>Turn scattered resources into one clear study plan.</h1>
+      <p>Start with a title, then collect playlists, PDFs, chapters, and practice lists in a focused progress dashboard.</p>
+      <div class="landing-actions">
+        <button class="btn btn-primary btn-lg js-open-plan-modal">Create new plan</button>
+      </div>
+    </div>
+
+    <div class="landing-preview" aria-hidden="true">
+      <div class="preview-top">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="preview-body">
+        <div class="preview-sidebar">
+          <div class="preview-mark"></div>
+          <div class="preview-line long"></div>
+          <div class="preview-line"></div>
+          <div class="preview-pill"></div>
+        </div>
+        <div class="preview-main">
+          <div class="preview-heading"></div>
+          <div class="preview-stats">
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+          <div class="preview-resource">
+            <div class="preview-icon"></div>
+            <div class="preview-resource-copy">
+              <div></div>
+              <div></div>
+            </div>
+            <div class="preview-progress"></div>
+          </div>
+          <div class="preview-resource alt">
+            <div class="preview-icon"></div>
+            <div class="preview-resource-copy">
+              <div></div>
+              <div></div>
+            </div>
+            <div class="preview-progress"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <div class="shell">
 
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="wordmark">Study<span>Flow</span></div>
-      <div class="tagline">Progress Tracker</div>
+      <div class="tagline" id="sidebarPlanTitle">Progress Tracker</div>
     </div>
 
     <div class="sidebar-ring-wrap">
@@ -140,6 +198,25 @@
 
     </div>
   </main>
+</div>
+
+<div class="modal-overlay" id="planModalOverlay">
+  <div class="modal modal-plan">
+    <div class="modal-header">
+      <h2>Create a study plan</h2>
+      <button class="icon-btn js-close-plan-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Plan title</label>
+        <input type="text" id="inputPlanTitle" placeholder="e.g. Frontend interview prep, Semester 4 revision..." />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost js-close-plan-modal">Cancel</button>
+      <button class="btn btn-primary" id="btnCreatePlan">Start studying</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
