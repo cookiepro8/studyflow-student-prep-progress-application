@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors()); // Allows your HTML tracker file to communicate with this app safely
+app.use(express.static(__dirname));
 
 // Get a free API Key from Google Developer Console (YouTube Data API v3 enabled)
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY; 
@@ -103,4 +104,5 @@ app.get('/api/playlist', async (req, res) => {
     }
 });
 
-app.listen(3000, () => console.log('Study Tracker server running on port 3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Study Tracker server running on port ${PORT}`));
