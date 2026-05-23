@@ -21,7 +21,7 @@
     <div class="landing-copy">
       <div class="landing-kicker">Personal study tracker</div>
       <h1>Turn scattered resources into one clear study plan.</h1>
-      <p>Start with a title, then collect playlists, PDFs, chapters, and practice lists in a focused progress dashboard.</p>
+      <p>Start with a title, then collect playlists, PDFs, text notes, chapters, and practice lists in a focused progress dashboard.</p>
       <div class="landing-actions">
         <button class="btn btn-primary btn-lg js-open-plan-modal">Create new plan</button>
       </div>
@@ -75,6 +75,7 @@
     <div class="sidebar-logo">
       <div class="wordmark">Study<span>Flow</span></div>
       <div class="tagline" id="sidebarPlanTitle">Progress Tracker</div>
+      <a class="landing-link js-back-to-landing" href="#landing">Back to landing</a>
     </div>
 
     <div class="sidebar-ring-wrap">
@@ -136,7 +137,7 @@
           <div class="dash-card">
             <div class="dc-label">Total Resources</div>
             <div class="dc-val" id="dcTotal">0</div>
-            <div class="dc-sub">playlists, PDFs & checklists</div>
+            <div class="dc-sub">playlists, PDFs, text & checklists</div>
           </div>
           <div class="dash-card">
             <div class="dc-label">Items Completed</div>
@@ -168,7 +169,7 @@
         <div class="empty-state" id="allEmpty">
           <span class="es-icon">📂</span>
           <h3>No resources added</h3>
-          <p>Add a YouTube playlist, PDF, or custom checklist to track your study progress.</p>
+          <p>Add a YouTube playlist, PDF, text resource, or custom checklist to track your study progress.</p>
           <button class="btn btn-primary js-show-modal">+ Add Resource</button>
         </div>
       </div>
@@ -232,6 +233,7 @@
           <button class="type-tab active" data-type="yt">▶ YouTube</button>
           <button class="type-tab" data-type="pdf">📄 PDF / Doc</button>
           <button class="type-tab" data-type="custom">✓ Checklist</button>
+          <button class="type-tab" data-type="text">T Text</button>
         </div>
       </div>
       

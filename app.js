@@ -24,6 +24,10 @@ let data = [];
     custom: 'Tasks / topics (comma-separated)',
   };
 
+  TYPE_META.text = { label: 'Text resource', icon: 'T', iconClass: 'icon-text', fillClass: 'fill-text', color: 'var(--green)' };
+  HINTS.text = 'Paste your notes or article text. It will be saved as one plain text resource.';
+  ITEM_LABELS.text = 'Plain text';
+
   function save() {
     try {
       localStorage.setItem('sf_data_v2', JSON.stringify(data));
@@ -36,6 +40,12 @@ let data = [];
       const d = localStorage.getItem('sf_data_v2');
       const savedTitle = localStorage.getItem('sf_plan_title_v1');
       if (d) data = JSON.parse(d);
+      data.forEach(resource => {
+        if (resource.type === 'text' && !resource.text) {
+          resource.text = (resource.items || []).map(item => item.label).join('\n\n');
+          resource.items = [];
+        }
+      });
       if (savedTitle) planTitle = savedTitle;
       if (!planTitle && data.length > 0) planTitle = 'My Study Plan';
     } catch(e) {}
@@ -43,6 +53,7 @@ let data = [];
 
   function applyPlanState() {
     document.body.classList.toggle('has-plan', Boolean(planTitle));
+    document.body.classList.toggle('show-app', Boolean(planTitle));
     document.getElementById('sidebarPlanTitle').textContent = planTitle || 'Progress Tracker';
     if (planTitle && currentView === 'dashboard') {
       document.getElementById('topbarTitle').textContent = planTitle;
@@ -72,8 +83,21 @@ let data = [];
     save();
     closePlanModal();
     applyPlanState();
+    document.body.classList.add('show-app');
     navigate('dashboard', document.querySelector('[data-view=dashboard]'));
     showToast('Study plan created ✓');
+  }
+
+  function backToLanding(event) {
+    if (event) event.preventDefault();
+    document.body.classList.remove('show-app');
+    window.location.hash = 'landing';
+  }
+
+  function handleInitialRoute() {
+    if (window.location.hash === '#landing') {
+      document.body.classList.remove('show-app');
+    }
   }
 
   function selectType(type, el) {
@@ -95,11 +119,15 @@ let data = [];
 
     document.getElementById('itemsLabel').textContent = ITEM_LABELS[type];
     document.getElementById('inputHint').textContent = HINTS[type];
+    document.getElementById('inputItems').rows = type === 'text' ? 7 : 4;
     document.getElementById('inputItems').placeholder = type === 'yt'
       ? 'Intro, JSX Basics, useState Hook, useEffect, Router v6…'
       : type === 'pdf'
       ? 'Chapter 1: Foundations, Chapter 2: Core Concepts, Chapter 3…'
       : 'Flashcards Set 1, Practice Problems, Summary Notes…';
+    if (type === 'text') {
+      document.getElementById('inputItems').placeholder = 'Paste your notes, article excerpt, or reading text here...';
+    }
   }
 
   function setYoutubeMode(mode) {
@@ -176,7 +204,15 @@ let data = [];
       const title = document.getElementById('inputTitle').value.trim();
       const raw = document.getElementById('inputItems').value.trim();
       if (!title) { showToast('Please enter a title.'); return; }
-      if (!raw) { showToast('Please enter at least one item.'); return; }
+      if (!raw) { showToast(selectedType === 'text' ? 'Please paste some text.' : 'Please enter at least one item.'); return; }
+      if (selectedType === 'text') {
+        data.unshift({ id: Date.now(), type: selectedType, title, text: raw, items: [] });
+        save();
+        closeModal();
+        renderAll();
+        showToast('Resource added âœ“');
+        return;
+      }
       const items = raw.split(',').map(s => s.trim()).filter(Boolean);
       if (items.length === 0) { showToast('No valid items found.'); return; }
       data.unshift({ id: Date.now(), type: selectedType, title, items: items.map(label => ({ label, done: false })) });
@@ -228,6 +264,7 @@ let data = [];
     const res = data.find(r => r.id === resId);
     if (!res) return;
     const m = TYPE_META[res.type];
+    const isText = res.type === 'text';
     const done = res.items.filter(i => i.done).length;
     const total = res.items.length;
     const pct = total ? Math.round(done / total * 100) : 0;
@@ -237,16 +274,25 @@ let data = [];
 
     document.getElementById('detailTitle').textContent = res.title;
     document.getElementById('detailMeta').textContent = m.label + ' · ' + total + ' items' + durationStr;
+    if (isText) document.getElementById('detailMeta').textContent = m.label;
     document.getElementById('detailPct').textContent = pct + '%';
     document.getElementById('detailPct').style.color = m.color;
     document.getElementById('detailProgSub').textContent = done + ' of ' + total + ' items complete';
     const fill = document.getElementById('detailFill');
     fill.style.width = pct + '%';
     fill.className = 'detail-fill ' + m.fillClass;
+    document.querySelector('.detail-progress').style.display = isText ? 'none' : '';
     document.getElementById('detailDelete').dataset.resourceId = resId;
     document.getElementById('topbarTitle').textContent = res.title;
     const list = document.getElementById('detailItems');
     list.innerHTML = '';
+    if (isText) {
+      const div = document.createElement('div');
+      div.className = 'text-resource-body text-resource-body-detail';
+      div.textContent = res.text || '';
+      list.appendChild(div);
+      return;
+    }
     res.items.forEach((item, idx) => {
       const div = document.createElement('div');
       div.className = 'detail-item' + (item.done ? ' done' : '');
@@ -300,6 +346,25 @@ let data = [];
 
     // Output duration metadata line into card display if present
     const durationHtml = res.duration ? `<div class="res-meta res-duration">⏳ Total Time: ${res.duration}</div>` : '';
+
+    if (res.type === 'text') {
+      card.className = 'res-card text-resource-card';
+      card.innerHTML = `
+        <div class="res-card-top">
+          <div class="res-card-header">
+            <div class="res-card-title-wrap">
+              <div class="res-card-icon ${m.iconClass}">${m.icon}</div>
+              <div class="res-card-title-text">
+                <div class="res-title">${esc(res.title)}</div>
+                <div class="res-meta">${m.label}</div>
+              </div>
+            </div>
+          </div>
+          <div class="text-resource-body">${esc(res.text || '')}</div>
+        </div>
+      `;
+      return card;
+    }
 
     card.innerHTML = `
       <div class="res-card-top">
@@ -386,6 +451,9 @@ let data = [];
     document.querySelectorAll('.js-open-plan-modal').forEach(button => {
       button.addEventListener('click', showPlanModal);
     });
+    document.querySelectorAll('.js-back-to-landing').forEach(link => {
+      link.addEventListener('click', backToLanding);
+    });
     document.querySelectorAll('.js-close-plan-modal').forEach(button => {
       button.addEventListener('click', closePlanModal);
     });
@@ -429,4 +497,5 @@ let data = [];
   initEventListeners();
   load();
   applyPlanState();
+  handleInitialRoute();
   renderAll();
